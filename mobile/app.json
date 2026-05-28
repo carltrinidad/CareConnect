@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "CareConnect",
+    "slug": "careconnect",
+    "scheme": "vibecode",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.vibecode.carebridge-mtxh4b",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "CareConnect uses the camera to capture photos inside the app before you publish them.",
+        "NSPhotoLibraryUsageDescription": "CareConnect accesses your photo library to let you choose media that appears in the app."
+      }
+    },
+    "android": {
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "icon": "./icon.png"
+  }
+}

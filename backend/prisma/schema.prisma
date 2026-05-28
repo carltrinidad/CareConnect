@@ -1,0 +1,157 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Facility {
+  id               String   @id @default(uuid())
+  name             String
+  email            String   @unique
+  phone            String
+  password         String
+  facilityName     String
+  address          String
+  location         String?
+  bio              String?
+  avatar           String?
+  capacity         Int      @default(6)
+  currentResidents Int      @default(0)
+  amenities        String   @default("[]") // JSON array stored as string
+  services         String   @default("[]") // JSON array stored as string
+  priceRange       String?
+  rating           Float    @default(0)
+  reviewCount      Int      @default(0)
+  images           String   @default("[]") // JSON array stored as string
+  licensed         Boolean  @default(false)
+  isHiring              Boolean  @default(false)
+  acceptingVolunteers   Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  volunteerHours VolunteerTimeSlot[]
+}
+
+model VolunteerTimeSlot {
+  id             String   @id @default(uuid())
+  facilityId     String
+  dayOfWeek      String
+  startTime      String
+  endTime        String
+  spotsAvailable Int      @default(2)
+  createdAt      DateTime @default(now())
+
+  facility Facility @relation(fields: [facilityId], references: [id], onDelete: Cascade)
+}
+
+model Volunteer {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  password     String?
+  school       String?
+  age          Int?
+  skills       String   @default("[]") // JSON array stored as string
+  bio          String?
+  avatar       String?
+  availability String   @default("[]") // JSON array of days stored as string
+  status       String   @default("pending") // pending or approved
+  totalHours   Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  signups VolunteerSignup[]
+}
+
+model BoardCareVolunteerOpportunity {
+  id             String   @id @default(uuid())
+  facilityId     String
+  facilityName   String
+  title          String
+  description    String
+  date           DateTime
+  startTime      String
+  endTime        String
+  spotsAvailable Int
+  spotsTotal     Int
+  skills         String   @default("[]") // JSON array for required skills stored as string
+  createdAt      DateTime @default(now())
+
+  signups VolunteerSignup[]
+}
+
+model VolunteerSignup {
+  id            String   @id @default(uuid())
+  volunteerId   String
+  opportunityId String
+  status        String   @default("pending") // pending, confirmed, completed, cancelled
+  signedUpAt    DateTime @default(now())
+  notes         String?
+
+  volunteer   Volunteer                     @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+  opportunity BoardCareVolunteerOpportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@unique([volunteerId, opportunityId])
+}
+
+// Generic user model for messaging & lookup (all account types)
+model ChatUser {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String
+  password  String
+  userType  String   // "elderly", "caregiver", "facility", "volunteer"
+  avatar    String?
+  bio       String?
+  location  String?
+  metadata  String   @default("{}") // JSON blob for user-type-specific fields
+  isAdmin   Boolean  @default(false)
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Messaging models
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String   @id @default(uuid())
+  conversationId String
+  userType       String // "volunteer" or "facility"
+  userId         String
+  userName       String
+  userAvatar     String?
+  lastReadAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userType, userId])
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderType     String // "volunteer" or "facility"
+  senderId       String
+  content        String
+  read           Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
